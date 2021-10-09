@@ -10,6 +10,10 @@
 #include <ngx_event.h>
 #include <ngx_channel.h>
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 
 static void ngx_start_worker_processes(ngx_cycle_t *cycle, ngx_int_t n,
     ngx_int_t type);
@@ -328,6 +332,12 @@ ngx_single_process_cycle(ngx_cycle_t *cycle)
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "reopening logs");
             ngx_reopen_files(cycle, (ngx_uid_t) -1);
         }
+
+        #ifdef __EMSCRIPTEN__
+        // Yields to the browser event loop allowing non-nginx code to run on the main thread too.
+        // TODO: Look into implementing epoll instead.
+        emscripten_sleep(1000);
+        #endif
     }
 }
 

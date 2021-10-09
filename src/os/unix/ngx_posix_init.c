@@ -142,3 +142,29 @@ ngx_posix_post_conf_init(ngx_log_t *log)
 }
 
 #endif
+
+#if defined(__EMSCRIPTEN__)
+/**
+ * Stub these functions to prevent Nginx from crashing on startup.
+ */
+
+// https://github.com/emscripten-core/emscripten/blob/da842597941f425e92df0b902d3af53f1bcc2713/system/lib/libc/musl/include/pwd.h#L20-L28
+#include <pwd.h>
+// https://github.com/emscripten-core/emscripten/blob/da842597941f425e92df0b902d3af53f1bcc2713/system/lib/libc/musl/include/grp.h#L19-L24
+#include <grp.h>
+
+struct passwd pwd = {NULL, NULL, 0, 0, NULL, NULL, NULL};
+struct passwd *getpwnam(const char *name) {
+    return &pwd;
+}
+
+struct group grp = {NULL, NULL, 0, NULL};
+struct group *getgrnam(const char *name) {
+    return &grp;
+}
+
+int sigsuspend(const sigset_t *mask) {
+    return -1;
+}
+
+#endif
